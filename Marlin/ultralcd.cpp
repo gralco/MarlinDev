@@ -64,6 +64,17 @@ static void lcd_status_screen();
     static void lcd_control_retract_menu();
   #endif
 
+  #ifdef RESUME_FEATURE
+    static void lcd_sdcard_resume_menu();
+    static void lcd_sdcard_print_menu();
+    extern float planner_disabled_below_z;
+    extern float last_z;
+    extern bool z_reached;
+    extern bool layer_reached;
+    extern bool hops;
+    extern bool gone_up;
+  #endif //RESUME_FEATURE
+
   #if ENABLED(DELTA_CALIBRATION_MENU)
     static void lcd_delta_calibrate_menu();
   #endif
@@ -379,6 +390,7 @@ static void lcd_return_to_status() { lcd_goto_menu(lcd_status_screen); }
 
   static void lcd_sdcard_pause() { card.pauseSDPrint(); }
 
+<<<<<<< HEAD
   static void lcd_sdcard_resume() { card.startFileprint(); }
 
   static void lcd_sdcard_stop() {
@@ -391,6 +403,19 @@ static void lcd_return_to_status() { lcd_goto_menu(lcd_status_screen); }
   }
 
 #endif //SDSUPPORT
+=======
+static void lcd_sdcard_stop() {
+  quickStop();
+  card.sdprinting = false;
+  card.closefile();
+  autotempShutdown();
+  cancel_heatup = true;
+  lcd_setstatus(MSG_PRINT_ABORTED, true);
+  #ifdef RESUME_FEATURE
+    planner_disabled_below_z = 0;
+  #endif //RESUME_FEATURE
+}
+>>>>>>> Added Resume From Z and Layer Counting features
 
 /**
  *
@@ -422,7 +447,11 @@ static void lcd_main_menu() {
         MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
       }
       else {
-        MENU_ITEM(submenu, MSG_CARD_MENU, lcd_sdcard_menu);
+        #ifdef RESUME_FEATURE
+          MENU_ITEM(submenu, MSG_CARD_MENU, lcd_sdcard_print_menu);
+          if(current_position[Z_AXIS] > 0)
+            MENU_ITEM(submenu, MSG_CARD_RESUME_MENU, lcd_sdcard_resume_menu);
+        #endif //RESUME_FEATURE
         #if !PIN_EXISTS(SD_DETECT)
           MENU_ITEM(gcode, MSG_CNG_SDCARD, PSTR("M21"));  // SD-card changed by user
         #endif
@@ -540,6 +569,7 @@ static void lcd_tune_menu() {
   //
   MENU_ITEM_EDIT(int3, MSG_FLOW, &extruder_multiplier[active_extruder], 10, 999);
 
+<<<<<<< HEAD
   //
   // Flow:
   // Flow 1:
@@ -565,6 +595,13 @@ static void lcd_tune_menu() {
   // Babystep Y:
   // Babystep Z:
   //
+=======
+  #ifdef TRACK_LAYER
+    int layer = current_layer;
+    MENU_ITEM_EDIT(int3, MSG_LAYER, &layer, layer, layer);
+  #endif //TRACK_LAYER
+
+>>>>>>> Added Resume From Z and Layer Counting features
   #if ENABLED(BABYSTEPPING)
     #if ENABLED(BABYSTEP_XY)
       MENU_ITEM(submenu, MSG_BABYSTEP_X, lcd_babystep_x);
@@ -1278,9 +1315,51 @@ static void lcd_control_volumetric_menu() {
     }
   #endif
 
+<<<<<<< HEAD
   static void lcd_sd_updir() {
     card.updir();
     currentMenuViewOffset = 0;
+=======
+#ifdef RESUME_FEATURE
+  // Print from SD
+  void lcd_sdcard_print_menu()
+  {
+    planner_disabled_below_z = 0;
+    lcd_sdcard_menu();
+  }
+
+  // Print from SD but set flag to ignore movements below a certain Z
+  void lcd_sdcard_resume_menu()
+  {
+    planner_disabled_below_z = current_position[Z_AXIS];
+    last_z = 0;
+    z_reached = false;
+    layer_reached = false;
+    hops = false;
+    gone_up = false;
+    lcd_sdcard_menu();
+  }
+#endif //RESUME_FEATURE
+
+/**
+ *
+ * "Print from SD" submenu
+ *
+ */
+void lcd_sdcard_menu() {
+  if (lcdDrawUpdate == 0 && LCD_CLICKED == 0) return;	// nothing to do (so don't thrash the SD card)
+  uint16_t fileCnt = card.getnrfilenames();
+  START_MENU();
+  MENU_ITEM(back, MSG_MAIN, lcd_main_menu);
+  card.getWorkDirName();
+  if (card.filename[0] == '/') {
+    #if !PIN_EXISTS(SD_DETECT)
+      MENU_ITEM(function, LCD_STR_REFRESH MSG_REFRESH, lcd_sd_refresh);
+    #endif
+  }
+  else {
+    MENU_ITEM(function, LCD_STR_FOLDER "..", lcd_sd_updir);
+>>>>>>> Added Resume From Z and Layer Counting features
   }
 
   /**

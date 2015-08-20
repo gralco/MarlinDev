@@ -102,6 +102,7 @@
  * M1   - Same as M0
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
+ * M19  - Resume print from current (or given) Z height (disables all movements below the current Z position, a file must be selected to print after executing this M code)
  * M20  - List SD card
  * M21  - Init SD card
  * M22  - Release SD card
@@ -420,9 +421,16 @@ bool target_direction;
   boolean chdkActive = false;
 #endif
 
+<<<<<<< HEAD
 #if ENABLED(PID_ADD_EXTRUSION_RATE)
   int lpq_len = 20;
 #endif
+=======
+#ifdef RESUME_FEATURE
+  extern float planner_disabled_below_z;
+  extern bool layer_reached;
+#endif //RESUME_FEATURE
+>>>>>>> Added Resume From Z and Layer Counting features
 
 //===========================================================================
 //================================ Functions ================================
@@ -940,6 +948,9 @@ void get_command() {
           lcd_setstatus(time, true);
           card.printingHasFinished();
           card.checkautostart(true);
+          #ifdef RESUME_FEATURE
+            planner_disabled_below_z = 0;
+          #endif //RESUME_FEATURE
         }
         if (serial_char == '#') stop_buffering = true;
 
@@ -2239,12 +2250,18 @@ inline void gcode_G4() {
  */
 inline void gcode_G28() {
 
+<<<<<<< HEAD
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (marlin_debug_flags & DEBUG_LEVELING) {
       SERIAL_ECHOLNPGM("gcode_G28 >>>");
     }
   #endif
 
+=======
+  #ifdef RESUME_FEATURE
+    if (planner_disabled_below_z) return; // Disable homing if resuming print
+  #endif //RESUME_FEATURE
+>>>>>>> Added Resume From Z and Layer Counting features
   // Wait for planner moves to finish!
   st_synchronize();
 
@@ -2593,6 +2610,10 @@ inline void gcode_G28() {
     }
   #endif
 
+  #ifdef TRACK_LAYER
+    current_layer = 0;
+    last_layer_z = 0;
+  #endif //TRACK_LAYER
   feedrate = saved_feedrate;
   feedrate_multiplier = saved_feedrate_multiplier;
   refresh_cmd_timeout();
@@ -2631,6 +2652,9 @@ inline void gcode_G28() {
    */
   inline void gcode_G29() {
 
+    #ifdef RESUME_FEATURE
+      if (planner_disabled_below_z) return; // Disable probing if resuming print
+    #endif
     static int probe_point = -1;
     MeshLevelingState state = code_seen('S') ? (MeshLevelingState)code_value_short() : MeshReport;
     if (state < 0 || state > 3) {
@@ -2739,6 +2763,10 @@ inline void gcode_G28() {
         mbl.z_values[iy][ix] = z;
 
     } // switch(state)
+    #ifdef TRACK_LAYER
+      current_layer = 0;
+      last_layer_z = 0;
+    #endif //TRACK_LAYER
   }
 
 #elif ENABLED(AUTO_BED_LEVELING_FEATURE)
@@ -2788,6 +2816,7 @@ inline void gcode_G28() {
    *
    */
   inline void gcode_G29() {
+<<<<<<< HEAD
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -2795,6 +2824,11 @@ inline void gcode_G28() {
       }
     #endif
 
+=======
+    #ifdef RESUME_FEATURE
+      if (planner_disabled_below_z) return; // Disable probing if resuming print
+    #endif
+>>>>>>> Added Resume From Z and Layer Counting features
     // Don't allow auto-leveling without homing first
     if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS]) {
       LCD_MESSAGEPGM(MSG_POSITION_UNKNOWN);
@@ -3217,6 +3251,7 @@ inline void gcode_G28() {
       enqueuecommands_P(PSTR(Z_PROBE_END_SCRIPT));
       st_synchronize();
     #endif
+<<<<<<< HEAD
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -3224,6 +3259,12 @@ inline void gcode_G28() {
       }
     #endif
 
+=======
+    #ifdef TRACK_LAYER
+      current_layer = 0;
+      last_layer_z = 0;
+    #endif //TRACK_LAYER
+>>>>>>> Added Resume From Z and Layer Counting features
   }
 
   #if DISABLED(Z_PROBE_SLED)
@@ -3347,6 +3388,27 @@ inline void gcode_M17() {
   enable_all_steppers();
 }
 
+#ifdef RESUME_FEATURE
+  inline void gcode_M19() {
+    if(code_seen('Z'))
+    {
+      gcode_get_destination(); // For Z
+      prepare_move();
+      enqueuecommands_P(PSTR("M114")); // tell the host where it is
+    }
+
+    if (current_position[Z_AXIS] > 0) {
+      planner_disabled_below_z = current_position[Z_AXIS];
+
+      SERIAL_PROTOCOLPGM("Resume from Z = ");
+      SERIAL_PROTOCOL(planner_disabled_below_z);
+      SERIAL_PROTOCOLPGM(" mm\n");
+    }
+    else
+      SERIAL_PROTOCOLPGM("Error: Resume from Z <= 0\n");
+  }
+#endif //RESUME_FEATURE
+
 #if ENABLED(SDSUPPORT)
 
   /**
@@ -3384,6 +3446,10 @@ inline void gcode_M17() {
    */
   inline void gcode_M24() {
     card.startFileprint();
+    #ifdef TRACK_LAYER
+      current_layer = 0;
+      last_layer_z = 0;
+    #endif //TRACK_LAYER
     print_job_start_ms = millis();
   }
 
@@ -4275,6 +4341,12 @@ inline void gcode_M114() {
   SERIAL_PROTOCOL(st_get_position_mm(Y_AXIS));
   SERIAL_PROTOCOLPGM(" Z:");
   SERIAL_PROTOCOL(st_get_position_mm(Z_AXIS));
+
+  #ifdef TRACK_LAYER
+    SERIAL_PROTOCOLPGM("  Layer:");
+    SERIAL_PROTOCOL(current_layer);
+    SERIAL_PROTOCOLLN("");
+  #endif //TRACK_LAYER
 
   SERIAL_EOL;
 
@@ -5570,6 +5642,9 @@ inline void gcode_T(uint8_t tmp_extruder) {
     SERIAL_PROTOCOL_F(tmp_extruder,DEC);
     SERIAL_ECHOLN(MSG_INVALID_EXTRUDER);
   }
+  #ifdef RESUME_FEATURE
+    else if (!planner_disabled_below_z || layer_reached);
+  #endif
   else {
     target_extruder = tmp_extruder;
 
@@ -5797,7 +5872,12 @@ void process_next_command() {
         gcode_M17();
         break;
 
-      #if ENABLED(SDSUPPORT)
+      #ifdef RESUME_FEATURE
+        case 19: // M19 - resume Z
+          gcode_M19(); break;
+      #endif //RESUME_FEATURE
+
+    #if ENABLED(SDSUPPORT)
 
         case 20: // M20 - list SD card
           gcode_M20(); break;
