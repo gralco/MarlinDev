@@ -85,6 +85,7 @@
  * G2  - CW ARC
  * G3  - CCW ARC
  * G4  - Dwell S<seconds> or P<milliseconds>
+ * G5  - Babystep Movement X Y Z
  * G10 - retract filament according to settings of M207
  * G11 - retract recover filament according to settings of M208
  * G28 - Home one or more axes
@@ -1104,9 +1105,16 @@ static void set_axis_is_at_home(AxisEnum axis) {
     else
   #endif
   {
-    current_position[axis] = base_home_pos(axis) + home_offset[axis];
-    min_pos[axis] = base_min_pos(axis) + home_offset[axis];
-    max_pos[axis] = base_max_pos(axis) + home_offset[axis];
+    if(axis != Z_AXIS)
+      current_position[axis] = base_home_pos(axis) + home_offset[axis];
+    else
+      current_position[axis] = base_home_pos(axis)
+      #ifndef BABYSTEP_OFFSET
+        + home_offset[axis];
+        min_pos[axis] = base_min_pos(axis) + home_offset[axis];
+        max_pos[axis] = base_max_pos(axis) + home_offset[axis]
+      #endif
+      ;
 
     #if ENABLED(AUTO_BED_LEVELING_FEATURE) && Z_HOME_DIR < 0
       if (axis == Z_AXIS) current_position[Z_AXIS] -= zprobe_zoffset;
@@ -2013,6 +2021,26 @@ static void homeaxis(AxisEnum axis) {
       #endif
     }
 
+    #ifdef BABYSTEPPING
+      if(axis == Z_AXIS)
+      {
+        baby_max_endstop[axis] = Z_BABY_DEFAULT_MAX_POS;
+        baby_min_endstop[axis] = Z_BABY_DEFAULT_MIN_POS;
+      }
+      #ifdef BABYSTEP_XY
+        else if(axis == X_AXIS)
+        {
+          baby_max_endstop[axis] = X_BABY_DEFAULT_MAX_POS;
+          baby_min_endstop[axis] = X_BABY_DEFAULT_MIN_POS;
+        }
+        else if(axis == Y_AXIS)
+        {
+          baby_max_endstop[axis] = Y_BABY_DEFAULT_MAX_POS;
+          baby_min_endstop[axis] = Y_BABY_DEFAULT_MIN_POS;
+        }
+      #endif //BABYSTEP_XY
+    #endif //BABYSTEPPING
+
   }
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -2184,6 +2212,69 @@ inline void gcode_G4() {
 
   while (millis() < codenum) idle();
 }
+
+#ifdef BABYSTEPPING
+  inline void gcode_G5() {
+    int8_t axis[3] = { -1, -1, -1 };
+    const uint8_t axis_order[] = { Z_AXIS
+    #ifdef BABYSTEP_XY
+      , X_AXIS, Y_AXIS // in the order: Z, X, then Y
+    #endif //BABYSTEP_XY
+      };
+    for (uint8_t i=0; i<(sizeof(axis_order)/sizeof(*axis_order)); i++) {
+      boolean endstop = false;
+      if (code_seen(axis_codes[axis_order[i]]) && axis[i] == -1) {
+        axis[i] = axis_order[i];
+        SERIAL_PROTOCOLPGM("Babystepping ");
+        SERIAL_CHAR(axis_codes[axis_order[i]]);
+        SERIAL_CHAR(' ');
+      }
+      else
+        continue;
+      long babysteps = code_value();
+      if (babysteps < 0 && (current_position[axis[i]] > baby_min_endstop[axis[i]])) { // negative babysteps on Z can ignore min endstop, be careful!
+        SERIAL_PROTOCOLPGM("-= ");
+        if(current_position[axis[i]] + babysteps/axis_steps_per_unit[axis[i]] < baby_min_endstop[axis[i]]) {
+          endstop = true;
+          babysteps = -1 * (current_position[axis[i]] - baby_min_endstop[axis[i]]) * axis_steps_per_unit[axis[i]];
+        }
+        baby_max_endstop[axis[i]] -= babysteps/axis_steps_per_unit[axis[i]];
+        baby_min_endstop[axis[i]] -= babysteps/axis_steps_per_unit[axis[i]];
+        SERIAL_PROTOCOL_F(-1 * babysteps/axis_steps_per_unit[axis[i]], 6);
+        babystepsTodo[axis[i]] += babysteps;
+      }
+      else if (babysteps > 0 && current_position[axis[i]] < baby_max_endstop[axis[i]]) {
+        SERIAL_PROTOCOLPGM("+= ");
+        if(current_position[axis[i]] + babysteps/axis_steps_per_unit[axis[i]] > baby_max_endstop[axis[i]]) {
+          endstop = true;
+          babysteps = (baby_max_endstop[axis[i]] - current_position[axis[i]]) * axis_steps_per_unit[axis[i]];
+        }
+        baby_max_endstop[axis[i]] -= babysteps/axis_steps_per_unit[axis[i]];
+        baby_min_endstop[axis[i]] -= babysteps/axis_steps_per_unit[axis[i]];
+        SERIAL_PROTOCOL_F(babysteps/axis_steps_per_unit[axis[i]], 6);
+        babystepsTodo[axis[i]] += babysteps;
+      }
+      else {
+        if((current_position[axis[i]] == baby_min_endstop[axis[i]] || current_position[axis[i]] == baby_max_endstop[axis[i]]) && babysteps != 0)
+          endstop = true;
+        SERIAL_PROTOCOL("= 0");
+      }
+      SERIAL_PROTOCOLPGM("mm\n");
+      if (endstop) {
+        SERIAL_PROTOCOLPGM("BABY_ENDSTOP PREVENTED A COLLISION!\n");
+        endstop = false;
+      }
+      if (current_position[axis[i]] < baby_min_endstop[axis[i]]) {
+        baby_min_endstop[axis[i]] = current_position[axis[i]];
+        baby_max_endstop[axis[i]] += baby_min_endstop[axis[i]];
+      }
+      #ifdef BABYSTEP_OFFSET
+        if(axis[i] == Z_AXIS) // will move to the given (EEPROM saved) babystepped Z height offset when homing but not recognize it
+          home_offset[axis[i]] = Z_BABY_DEFAULT_MIN_POS - baby_min_endstop[axis[i]];
+      #endif //BABYSTEP_OFFSET
+    }
+  }
+#endif //BABYSTEPPING
 
 #if ENABLED(FWRETRACT)
 
@@ -2542,6 +2633,16 @@ inline void gcode_G28() {
 
     sync_plan_position();
 
+    if(code_seen(axis_codes[Z_AXIS])) {
+      if(code_value_long() != 0) {
+        current_position[Z_AXIS]=code_value()
+        #ifndef BABYSTEP_OFFSET // will move to the given (EEPROM saved) babystepped Z height offset when homing but not recognize it
+          + home_offset[Z_AXIS]
+        #endif
+        ;
+      }
+    }
+
   #endif // else DELTA
 
   #if ENABLED(SCARA)
@@ -2581,6 +2682,7 @@ inline void gcode_G28() {
   feedrate_multiplier = saved_feedrate_multiplier;
   refresh_cmd_timeout();
   endstops_hit_on_purpose(); // clear endstop hit flags
+<<<<<<< HEAD
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -2588,6 +2690,13 @@ inline void gcode_G28() {
     }
   #endif
 
+=======
+  #ifdef BABYSTEP_OFFSET
+    baby_max_endstop[Z_AXIS] -= home_offset[Z_AXIS];
+    baby_min_endstop[Z_AXIS] -= home_offset[Z_AXIS];
+    babystepsTodo[Z_AXIS] += home_offset[Z_AXIS]*axis_steps_per_unit[Z_AXIS];
+  #endif
+>>>>>>> Initial
 }
 
 #if ENABLED(MESH_BED_LEVELING)
@@ -5694,6 +5803,12 @@ void process_next_command() {
         gcode_G4();
         break;
 
+      #ifdef BABYSTEPPING
+        case 5:
+          gcode_G5();
+          break;
+      #endif //BABYSTEPPING
+
       #if ENABLED(FWRETRACT)
 
         case 10: // G10: retract
@@ -6226,6 +6341,7 @@ void clamp_to_software_endstops(float target[3]) {
     float negative_z_offset = 0;
     #if ENABLED(AUTO_BED_LEVELING_FEATURE)
       if (zprobe_zoffset < 0) negative_z_offset += zprobe_zoffset;
+<<<<<<< HEAD
       if (home_offset[Z_AXIS] < 0) {
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -6235,6 +6351,11 @@ void clamp_to_software_endstops(float target[3]) {
         #endif
         negative_z_offset += home_offset[Z_AXIS];
       }
+=======
+      #ifndef BABYSTEP_OFFSET
+        if (home_offset[Z_AXIS] < 0) negative_z_offset += home_offset[Z_AXIS];
+      #endif
+>>>>>>> Initial
     #endif
     NOLESS(target[Z_AXIS], min_pos[Z_AXIS] + negative_z_offset);
   }

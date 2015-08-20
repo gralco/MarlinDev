@@ -361,10 +361,23 @@
 // does not respect endstops!
 //#define BABYSTEPPING
 #if ENABLED(BABYSTEPPING)
+     // !!! THIS NULLIFIES (OR ENHANCES) THE ORIGINAL FUNCTIONALITY OF Z-HOME OFFSET !!!
+  //#define BABYSTEP_OFFSET //Babystep the stored Z-Home Offset
+     //If you babystep the Z-axis it will be saved and reapplied immediately after homing.
+     //If you perform an M500 or 'Main > Control > Store memory' from an LCD controller
+     //it will save the actuated babystep offset in the EEPROM.
+     //M206 Z0 or 'Main > Prepare > Set home offsets' at Z=0 will reset the offset back to 0
+     // !!! THIS NULLIFIES (OR ENHANCES) THE ORIGINAL FUNCTIONALITY OF Z-HOME OFFSET !!!
   #define BABYSTEP_XY  //not only z, but also XY in the menu. more clutter, more functions
                        //not implemented for CoreXY and deltabots!
   #define BABYSTEP_INVERT_Z false  //true for inverse movements in Z
   #define BABYSTEP_Z_MULTIPLICATOR 2 //faster z movements
+  #define X_BABY_DEFAULT_MAX_POS X_MAX_POS
+  #define Y_BABY_DEFAULT_MAX_POS Y_MAX_POS
+  #define Z_BABY_DEFAULT_MAX_POS Z_MAX_POS
+  #define X_BABY_DEFAULT_MIN_POS X_MIN_POS
+  #define Y_BABY_DEFAULT_MIN_POS Y_MIN_POS
+  #define Z_BABY_DEFAULT_MIN_POS Z_MIN_POS-10 //be careful, min hardware & software endstops are ignored/extended
 #endif
 
 // @section extruder
