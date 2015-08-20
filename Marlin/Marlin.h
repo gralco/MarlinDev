@@ -258,6 +258,9 @@ extern float home_offset[3]; // axis[n].home_offset
 extern float min_pos[3]; // axis[n].min_pos
 extern float max_pos[3]; // axis[n].max_pos
 extern bool axis_known_position[3]; // axis[n].is_known
+#if EXTRUDERS > 1
+  extern float extruder_offset[2][EXTRUDERS];
+#endif
 
 #if ENABLED(DELTA) || ENABLED(SCARA)
   void calculate_delta(float cartesian[3]);
