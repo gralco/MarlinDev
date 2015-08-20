@@ -773,11 +773,29 @@ static void lcd_move_e(
 }
 
 #if EXTRUDERS > 1
+<<<<<<< HEAD
   static void lcd_move_e1() { lcd_move_e(1); }
   #if EXTRUDERS > 2
     static void lcd_move_e2() { lcd_move_e(2); }
     #if EXTRUDERS > 3
       static void lcd_move_e3() { lcd_move_e(3); }
+=======
+  static void lcd_move_e1() { lcd_move_e(1) }
+  #if EXTRUDERS > 2
+    static void lcd_move_e2() { lcd_move_e(2) }
+    #if EXTRUDERS > 3
+      static void lcd_move_e3() { lcd_move_e(3) }
+    #endif
+  #endif
+#endif // EXTRUDERS > 1
+
+#if EXTRUDERS > 1
+  static void lcd_move_e1() { lcd_move_e(1) }
+  #if EXTRUDERS > 2
+    static void lcd_move_e2() { lcd_move_e(2) }
+    #if EXTRUDERS > 3
+      static void lcd_move_e3() { lcd_move_e(3) }
+>>>>>>> Added Extrude From Multiple Extruders from LCD feature
     #endif
   #endif
 #endif // EXTRUDERS > 1
