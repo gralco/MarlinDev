@@ -195,6 +195,7 @@
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
  * M540 - Use S[0|1] to enable or disable the stop SD card print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
  * M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
+ * M601 - Resume the print from filament change
  * M665 - Set delta configurations: L<diagonal rod> R<delta radius> S<segments/s>
  * M666 - Set delta endstop adjustment
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
@@ -420,9 +421,15 @@ bool target_direction;
   boolean chdkActive = false;
 #endif
 
+<<<<<<< HEAD
 #if ENABLED(PID_ADD_EXTRUSION_RATE)
   int lpq_len = 20;
 #endif
+=======
+#ifdef FILAMENTCHANGEENABLE
+  boolean change_filament = false;
+#endif //FILAMENTCHANGEENABLE
+>>>>>>> Added M601 Resume Print From Filament Change feature
 
 //===========================================================================
 //================================ Functions ================================
@@ -890,6 +897,10 @@ void get_command() {
 
       // If command was e-stop process now
       if (strcmp(command, "M112") == 0) kill(PSTR(MSG_KILLED));
+
+      #ifdef FILAMENTCHANGEENABLE
+        if (strcmp(command, "M601") == 0) change_filament = false;
+      #endif //FILAMENTCHANGEENABLE
 
       cmd_queue_index_w = (cmd_queue_index_w + 1) % BUFSIZE;
       commands_in_queue += 1;
@@ -5305,7 +5316,7 @@ inline void gcode_M503() {
    *
    */
   inline void gcode_M600() {
-
+    change_filament = true;
     if (degHotend(active_extruder) < extrude_min_temp) {
       SERIAL_ERROR_START;
       SERIAL_ERRORLNPGM(MSG_TOO_COLD_FOR_M600);
@@ -5370,7 +5381,7 @@ inline void gcode_M503() {
     delay(100);
     LCD_ALERTMESSAGEPGM(MSG_FILAMENTCHANGE);
     millis_t next_tick = 0;
-    while (!lcd_clicked()) {
+    while (!lcd_clicked() && change_filament) {
       #if DISABLED(AUTO_FILAMENT_CHANGE)
         millis_t ms = millis();
         if (ms >= next_tick) {
@@ -5428,6 +5439,11 @@ inline void gcode_M503() {
     #endif
 
   }
+
+/**
+ * M601: Resume the print from filament change
+ */
+inline void gcode_M601() { change_filament = false; }
 
 #endif // FILAMENTCHANGEENABLE
 
@@ -6184,6 +6200,10 @@ void process_next_command() {
       #if ENABLED(FILAMENTCHANGEENABLE)
         case 600: //Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
           gcode_M600();
+          break;
+
+        case 601: // M601 Resume the print from filament change
+          gcode_M601();
           break;
       #endif // FILAMENTCHANGEENABLE
 
