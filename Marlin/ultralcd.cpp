@@ -789,6 +789,7 @@ static void lcd_move_e(
   #endif
 #endif // EXTRUDERS > 1
 
+<<<<<<< HEAD
 #if EXTRUDERS > 1
   static void lcd_move_e1() { lcd_move_e(1) }
   #if EXTRUDERS > 2
@@ -800,6 +801,8 @@ static void lcd_move_e(
   #endif
 #endif // EXTRUDERS > 1
 
+=======
+>>>>>>> Got rid of accidental redundant (doubled-up) code from fixing conflicts (thanks Scott)
 /**
  *
  * "Prepare" > "Move Xmm" > "Move XYZ" submenu
