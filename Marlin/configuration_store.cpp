@@ -14,7 +14,7 @@
  *
  */
 
-#define EEPROM_VERSION "V20"
+#define EEPROM_VERSION "V21"
 
 /**
  * V19 EEPROM Layout:
@@ -153,7 +153,10 @@ void Config_StoreSettings()  {
   EEPROM_WRITE_VAR(i, home_offset);
   #if EXTRUDERS > 1
     EEPROM_WRITE_VAR(i,extruder_offset); // save extruder offset to the EEPROM memory (from github dob71 MarlinX2)
-  #endif // EXTRUDERS > 
+  #else
+    float dummy_extruder_offset[][4] = {{0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}};
+    EEPROM_WRITE_VAR(i,dummy_extruder_offset); // retrieve saved extruder offset (from github dob71 MarlinX2)
+  #endif // EXTRUDERS > 1
 
   uint8_t mesh_num_x = 3;
   uint8_t mesh_num_y = 3;
@@ -482,13 +485,13 @@ void Config_ResetDefault() {
     #ifdef EXTRUDER_OFFSET_X
       EXTRUDER_OFFSET_X;
     #else
-      {0,0};
+      {0.0, 0.0, 0.0, 0.0};
     #endif // EXTRUDER_OFFSET_X
     float tmp5[]=
     #ifdef EXTRUDER_OFFSET_Y
       EXTRUDER_OFFSET_Y;
     #else
-      {0,0};
+      {0.0, 0.0, 0.0, 0.0};
     #endif // EXTRUDER_OFFSET_Y
   #endif // EXTRUDERS > 1
   for (uint8_t i = 0; i < NUM_AXIS; i++) {

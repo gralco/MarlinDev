@@ -300,12 +300,12 @@ bool target_direction;
 // Extruder offsets
 #if EXTRUDERS > 1
   #ifndef EXTRUDER_OFFSET_X
-    #define EXTRUDER_OFFSET_X { 0 }
+    #define EXTRUDER_OFFSET_X { 0.0, 0.0, 0.0, 0.0 } // 4 extruder offsets for future expandability
   #endif
   #ifndef EXTRUDER_OFFSET_Y
-    #define EXTRUDER_OFFSET_Y { 0 }
+    #define EXTRUDER_OFFSET_Y { 0.0, 0.0, 0.0, 0.0 }
   #endif
-  float extruder_offset[][EXTRUDERS] = {
+  float extruder_offset[][4] = {
     EXTRUDER_OFFSET_X,
     EXTRUDER_OFFSET_Y
     #if ENABLED(DUAL_X_CARRIAGE)

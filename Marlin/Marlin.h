@@ -259,7 +259,7 @@ extern float min_pos[3]; // axis[n].min_pos
 extern float max_pos[3]; // axis[n].max_pos
 extern bool axis_known_position[3]; // axis[n].is_known
 #if EXTRUDERS > 1
-  extern float extruder_offset[2][EXTRUDERS];
+  extern float extruder_offset[2][4]; // 4 extruder offsets for future expandability
 #endif
 
 #if ENABLED(DELTA) || ENABLED(SCARA)
