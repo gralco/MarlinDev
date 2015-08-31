@@ -2250,18 +2250,16 @@ inline void gcode_G4() {
  */
 inline void gcode_G28() {
 
-<<<<<<< HEAD
+  #ifdef RESUME_FEATURE
+    if (planner_disabled_below_z) return; // Disable homing if resuming print
+  #endif //RESUME_FEATURE
+
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (marlin_debug_flags & DEBUG_LEVELING) {
       SERIAL_ECHOLNPGM("gcode_G28 >>>");
     }
   #endif
 
-=======
-  #ifdef RESUME_FEATURE
-    if (planner_disabled_below_z) return; // Disable homing if resuming print
-  #endif //RESUME_FEATURE
->>>>>>> Added Resume From Z and Layer Counting features
   // Wait for planner moves to finish!
   st_synchronize();
 
@@ -2816,7 +2814,10 @@ inline void gcode_G28() {
    *
    */
   inline void gcode_G29() {
-<<<<<<< HEAD
+
+    #ifdef RESUME_FEATURE
+      if (planner_disabled_below_z) return; // Disable probing if resuming print
+    #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -2824,11 +2825,6 @@ inline void gcode_G28() {
       }
     #endif
 
-=======
-    #ifdef RESUME_FEATURE
-      if (planner_disabled_below_z) return; // Disable probing if resuming print
-    #endif
->>>>>>> Added Resume From Z and Layer Counting features
     // Don't allow auto-leveling without homing first
     if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS]) {
       LCD_MESSAGEPGM(MSG_POSITION_UNKNOWN);
@@ -3251,7 +3247,6 @@ inline void gcode_G28() {
       enqueuecommands_P(PSTR(Z_PROBE_END_SCRIPT));
       st_synchronize();
     #endif
-<<<<<<< HEAD
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -3259,12 +3254,10 @@ inline void gcode_G28() {
       }
     #endif
 
-=======
     #ifdef TRACK_LAYER
       current_layer = 0;
       last_layer_z = 0;
     #endif //TRACK_LAYER
->>>>>>> Added Resume From Z and Layer Counting features
   }
 
   #if DISABLED(Z_PROBE_SLED)
