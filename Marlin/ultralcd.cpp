@@ -454,7 +454,7 @@ void lcd_set_home_offsets() {
       baby_max_endstop[axis] -= diff;
       baby_min_endstop[axis] -= diff;
      #ifdef BABYSTEP_OFFSET
-      if(axis == Z_AXIS) home_offset[axis] += diff;
+      if (axis == Z_AXIS) home_offset[axis] += diff;
      #endif //BABYSTEP_OFFSET
       encoderPosition = 0;
       lcdDrawUpdate = 1;
