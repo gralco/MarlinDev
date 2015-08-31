@@ -1105,7 +1105,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
     else
   #endif
   {
-    if(axis != Z_AXIS)
+    if (axis != Z_AXIS)
       current_position[axis] = base_home_pos(axis) + home_offset[axis];
     else
       current_position[axis] = base_home_pos(axis)
@@ -2022,19 +2022,16 @@ static void homeaxis(AxisEnum axis) {
     }
 
     #if ENABLED(BABYSTEPPING)
-      if(axis == Z_AXIS)
-      {
+      if (axis == Z_AXIS) {
         baby_max_endstop[axis] = Z_BABY_DEFAULT_MAX_POS;
         baby_min_endstop[axis] = Z_BABY_DEFAULT_MIN_POS;
       }
       #ifdef BABYSTEP_XY
-        else if(axis == X_AXIS)
-        {
+        else if (axis == X_AXIS) {
           baby_max_endstop[axis] = X_BABY_DEFAULT_MAX_POS;
           baby_min_endstop[axis] = X_BABY_DEFAULT_MIN_POS;
         }
-        else if(axis == Y_AXIS)
-        {
+        else if (axis == Y_AXIS) {
           baby_max_endstop[axis] = Y_BABY_DEFAULT_MAX_POS;
           baby_min_endstop[axis] = Y_BABY_DEFAULT_MIN_POS;
         }
@@ -2234,7 +2231,7 @@ inline void gcode_G4() {
       long babysteps = code_value();
       if (babysteps < 0 && (current_position[axis[i]] > baby_min_endstop[axis[i]])) { // negative babysteps on Z can ignore min endstop, be careful!
         SERIAL_PROTOCOLPGM("-= ");
-        if(current_position[axis[i]] + babysteps/axis_steps_per_unit[axis[i]] < baby_min_endstop[axis[i]]) {
+        if (current_position[axis[i]] + babysteps/axis_steps_per_unit[axis[i]] < baby_min_endstop[axis[i]]) {
           endstop = true;
           babysteps = -1 * (current_position[axis[i]] - baby_min_endstop[axis[i]]) * axis_steps_per_unit[axis[i]];
         }
@@ -2245,7 +2242,7 @@ inline void gcode_G4() {
       }
       else if (babysteps > 0 && current_position[axis[i]] < baby_max_endstop[axis[i]]) {
         SERIAL_PROTOCOLPGM("+= ");
-        if(current_position[axis[i]] + babysteps/axis_steps_per_unit[axis[i]] > baby_max_endstop[axis[i]]) {
+        if (current_position[axis[i]] + babysteps/axis_steps_per_unit[axis[i]] > baby_max_endstop[axis[i]]) {
           endstop = true;
           babysteps = (baby_max_endstop[axis[i]] - current_position[axis[i]]) * axis_steps_per_unit[axis[i]];
         }
@@ -2255,7 +2252,7 @@ inline void gcode_G4() {
         babystepsTodo[axis[i]] += babysteps;
       }
       else {
-        if((current_position[axis[i]] == baby_min_endstop[axis[i]] || current_position[axis[i]] == baby_max_endstop[axis[i]]) && babysteps != 0)
+        if ((current_position[axis[i]] == baby_min_endstop[axis[i]] || current_position[axis[i]] == baby_max_endstop[axis[i]]) && babysteps != 0)
           endstop = true;
         SERIAL_PROTOCOL("= 0");
       }
@@ -2269,7 +2266,7 @@ inline void gcode_G4() {
         baby_max_endstop[axis[i]] += baby_min_endstop[axis[i]];
       }
       #ifdef BABYSTEP_OFFSET
-        if(axis[i] == Z_AXIS) // will move to the given (EEPROM saved) babystepped Z height offset when homing but not recognize it
+        if (axis[i] == Z_AXIS) // will move to the given (EEPROM saved) babystepped Z height offset when homing but not recognize it
           home_offset[axis[i]] = Z_BABY_DEFAULT_MIN_POS - baby_min_endstop[axis[i]];
       #endif //BABYSTEP_OFFSET
     }
@@ -2633,9 +2630,9 @@ inline void gcode_G28() {
 
     sync_plan_position();
 
-    if(code_seen(axis_codes[Z_AXIS])) {
-      if(code_value_long() != 0) {
-        current_position[Z_AXIS]=code_value()
+    if (code_seen(axis_codes[Z_AXIS])) {
+      if (code_value_long() != 0) {
+        current_position[Z_AXIS] = code_value()
         #ifndef BABYSTEP_OFFSET // will move to the given (EEPROM saved) babystepped Z height offset when homing but not recognize it
           + home_offset[Z_AXIS]
         #endif
@@ -2682,7 +2679,6 @@ inline void gcode_G28() {
   feedrate_multiplier = saved_feedrate_multiplier;
   refresh_cmd_timeout();
   endstops_hit_on_purpose(); // clear endstop hit flags
-<<<<<<< HEAD
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -2690,13 +2686,11 @@ inline void gcode_G28() {
     }
   #endif
 
-=======
   #ifdef BABYSTEP_OFFSET
     baby_max_endstop[Z_AXIS] -= home_offset[Z_AXIS];
     baby_min_endstop[Z_AXIS] -= home_offset[Z_AXIS];
     babystepsTodo[Z_AXIS] += home_offset[Z_AXIS]*axis_steps_per_unit[Z_AXIS];
   #endif
->>>>>>> Initial
 }
 
 #if ENABLED(MESH_BED_LEVELING)
@@ -6341,7 +6335,6 @@ void clamp_to_software_endstops(float target[3]) {
     float negative_z_offset = 0;
     #if ENABLED(AUTO_BED_LEVELING_FEATURE)
       if (zprobe_zoffset < 0) negative_z_offset += zprobe_zoffset;
-<<<<<<< HEAD
       if (home_offset[Z_AXIS] < 0) {
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (marlin_debug_flags & DEBUG_LEVELING) {
@@ -6349,13 +6342,10 @@ void clamp_to_software_endstops(float target[3]) {
             SERIAL_EOL;
           }
         #endif
-        negative_z_offset += home_offset[Z_AXIS];
+        #ifndef BABYSTEP_OFFSET
+          if (home_offset[Z_AXIS] < 0) negative_z_offset += home_offset[Z_AXIS];
+        #endif
       }
-=======
-      #ifndef BABYSTEP_OFFSET
-        if (home_offset[Z_AXIS] < 0) negative_z_offset += home_offset[Z_AXIS];
-      #endif
->>>>>>> Initial
     #endif
     NOLESS(target[Z_AXIS], min_pos[Z_AXIS] + negative_z_offset);
   }
