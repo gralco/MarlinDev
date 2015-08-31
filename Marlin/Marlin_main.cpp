@@ -3383,8 +3383,7 @@ inline void gcode_M17() {
 
 #ifdef RESUME_FEATURE
   inline void gcode_M19() {
-    if(code_seen('Z'))
-    {
+    if (code_seen('Z')) {
       gcode_get_destination(); // For Z
       prepare_move();
       enqueuecommands_P(PSTR("M114")); // tell the host where it is

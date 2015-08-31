@@ -489,28 +489,24 @@ void check_axes_activity() {
   void floor_z(const float &z)
   {
     // filter out moves below a given floor height and attempt to ignore any hops/travels
-    if(planner_disabled_below_z && !layer_reached)
-    {
-      if(z < planner_disabled_below_z)
-      {
-        if(z > last_z && !gone_up) // up once
+    if (planner_disabled_below_z && !layer_reached) {
+      if (z < planner_disabled_below_z) {
+        if (z > last_z && !gone_up) // up once
           gone_up = true;
-        else if(z < last_z) // back down
-        {
+        else if (z < last_z) { // back down
           #ifdef TRACK_LAYER
-            if(z > last_layer_z)
+            if (z > last_layer_z)
               current_layer++;
-            else if(z < last_layer_z && z != 0)
+            else if (z < last_layer_z && z != 0)
               current_layer = 1; // if it goes lower than what we would think was the previous layer then we might as well assume it's printing another object
-            else if(z == 0)
+            else if (z == 0)
               current_layer = 0;
             last_layer_z = z;
           #endif //TRACK_LAYER
           hops = true;
           gone_up = false;
         }
-        else if(z > last_z && gone_up) // up twice
-        {
+        else if (z > last_z && gone_up) { // up twice
           #ifdef TRACK_LAYER
             current_layer++; // be careful with prints like the spiral vase
           #endif //TRACK_LAYER
@@ -520,19 +516,17 @@ void check_axes_activity() {
         last_z = z;
         return;
       }
-      else if(hops && !z_reached)
-      {
+      else if (hops && !z_reached) {
         z_reached = true;
         last_z = z;
         return;
       }
-      else if(hops && z == last_z)
+      else if (hops && z == last_z)
         return;
       else
         layer_reached = true;
     }
-    else if(planner_disabled_below_z && z < planner_disabled_below_z)
-    {
+    else if (planner_disabled_below_z && z < planner_disabled_below_z) {
       z_reached = false;
       layer_reached = false;
       return;
@@ -543,20 +537,19 @@ void check_axes_activity() {
 #ifdef TRACK_LAYER
   void layer_count(const float &z)
   {
-    if(z > last_z && !gone_up) // up once
+    if (z > last_z && !gone_up) // up once
       gone_up = true;
-    else if(z < last_z) // back down
-    {
-      if(z > last_layer_z)
+    else if (z < last_z) { // back down
+      if (z > last_layer_z)
         current_layer++;
-      else if(z < last_layer_z && z != 0)
+      else if (z < last_layer_z && z != 0)
         current_layer = 1; // if it goes lower than what we would think was the previous layer then we might as well assume it's printing another object
-      else if(z == 0)
+      else if (z == 0)
         current_layer = 0;
       last_layer_z = z;
       gone_up = false;
     }
-    else if(z > last_z && gone_up) // up twice
+    else if (z > last_z && gone_up) // up twice
       current_layer++; // be careful with prints like the spiral vase
 
     last_z = z;
