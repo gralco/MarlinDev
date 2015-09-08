@@ -750,11 +750,7 @@ static void _lcd_move(const char *name, AxisEnum axis, int min, int max) {
 static void lcd_move_x() { _lcd_move(PSTR(MSG_MOVE_X), X_AXIS, X_MIN_POS, X_MAX_POS); }
 static void lcd_move_y() { _lcd_move(PSTR(MSG_MOVE_Y), Y_AXIS, Y_MIN_POS, Y_MAX_POS); }
 static void lcd_move_z() { _lcd_move(PSTR(MSG_MOVE_Z), Z_AXIS, Z_MIN_POS, Z_MAX_POS); }
-static void lcd_move_e(
-#if EXTRUDERS > 1
-  uint8_t e
-#endif
-) {
+static void lcd_move_e(uint8_t e) {
   #if EXTRUDERS > 1
     unsigned short original_active_extruder = active_extruder;
     active_extruder = e;
