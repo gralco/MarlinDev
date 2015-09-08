@@ -117,22 +117,27 @@
 #ifndef MSG_MOVE_Z
 #define MSG_MOVE_Z                          "Move Z"
 #endif
-#ifndef MSG_MOVE_E
-#define MSG_MOVE_E                          "Extruder"
+#if EXTRUDERS == 1
+  #ifndef MSG_MOVE_E
+  #define MSG_MOVE_E                        "Extruder"
+  #endif
 #endif
 #if EXTRUDERS > 1
   #ifndef MSG_MOVE_E1
   #define MSG_MOVE_E1                       "Extruder1"
   #endif
+  #ifndef MSG_MOVE_E2
+  #define MSG_MOVE_E2                       "Extruder2"
+  #endif
   #if EXTRUDERS > 2
-    #ifndef MSG_MOVE_E2
-    #define MSG_MOVE_E2                     "Extruder2"
+    #ifndef MSG_MOVE_E3
+    #define MSG_MOVE_E3                     "Extruder3"
     #endif
     #if EXTRUDERS > 3
       #ifndef MSG_MOVE_E3
-      #define MSG_MOVE_E3                   "Extruder3"
+      #define MSG_MOVE_E3                   "Extruder4"
       #endif
-    #endif
+    #endif // EXTRUDERS > 3
   #endif // EXTRUDERS > 2
 #endif // EXTRUDERS > 1
 #ifndef MSG_MOVE_01MM

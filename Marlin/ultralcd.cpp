@@ -761,7 +761,19 @@ static void lcd_move_e(uint8_t e) {
     line_to_current(E_AXIS);
     lcdDrawUpdate = 1;
   }
-  if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_MOVE_E), ftostr31(current_position[E_AXIS]));
+  #if EXTRUDERS == 1
+    if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_MOVE_E), ftostr31(current_position[E_AXIS]));
+  #endif
+  #if EXTRUDERS > 1
+    if (lcdDrawUpdate && e == 0) lcd_implementation_drawedit(PSTR(MSG_MOVE_E1), ftostr31(current_position[E_AXIS]));
+    else if (lcdDrawUpdate && e == 1) lcd_implementation_drawedit(PSTR(MSG_MOVE_E2), ftostr31(current_position[E_AXIS]));
+    #if EXTRUDERS > 2
+      else if (lcdDrawUpdate && e == 2) lcd_implementation_drawedit(PSTR(MSG_MOVE_E3), ftostr31(current_position[E_AXIS]));
+      #if EXTRUDERS > 3
+        else if (lcdDrawUpdate && e == 3) lcd_implementation_drawedit(PSTR(MSG_MOVE_E4), ftostr31(current_position[E_AXIS]));
+      #endif
+    #endif
+  #endif
   if (LCD_CLICKED) lcd_goto_menu(lcd_move_menu_axis);
   #if EXTRUDERS > 1
     active_extruder = original_active_extruder;
@@ -817,9 +829,12 @@ static void lcd_move_menu_axis() {
   MENU_ITEM(submenu, MSG_MOVE_Y, lcd_move_y);
   if (move_menu_scale < 10.0) {
     MENU_ITEM(submenu, MSG_MOVE_Z, lcd_move_z);
-    MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_e0);
+    #if EXTRUDERS == 1
+      MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_e0);
+    #endif
     #if EXTRUDERS > 1
-      MENU_ITEM(submenu, MSG_MOVE_E1, lcd_move_e1);
+      MENU_ITEM(submenu, MSG_MOVE_E1, lcd_move_e0);
+      MENU_ITEM(submenu, MSG_MOVE_E2, lcd_move_e1);
       #if EXTRUDERS > 2
         MENU_ITEM(submenu, MSG_MOVE_E2, lcd_move_e2);
         #if EXTRUDERS > 3
