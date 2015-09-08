@@ -752,7 +752,7 @@ static void lcd_move_y() { _lcd_move(PSTR(MSG_MOVE_Y), Y_AXIS, Y_MIN_POS, Y_MAX_
 static void lcd_move_z() { _lcd_move(PSTR(MSG_MOVE_Z), Z_AXIS, Z_MIN_POS, Z_MAX_POS); }
 static void lcd_move_e(
 #if EXTRUDERS > 1
-  uint8_t e = 0
+  uint8_t e
 #endif
 ) {
   #if EXTRUDERS > 1
@@ -772,7 +772,9 @@ static void lcd_move_e(
   #endif
 }
 
+static void lcd_move_e0() { lcd_move_e(0); }
 #if EXTRUDERS > 1
+<<<<<<< HEAD
 <<<<<<< HEAD
   static void lcd_move_e1() { lcd_move_e(1); }
   #if EXTRUDERS > 2
@@ -781,10 +783,13 @@ static void lcd_move_e(
       static void lcd_move_e3() { lcd_move_e(3); }
 =======
   static void lcd_move_e1() { lcd_move_e(1) }
+=======
+  static void lcd_move_e1() { lcd_move_e(1); }
+>>>>>>> Solve https://github.com/MarlinFirmware/MarlinDev/pull/143
   #if EXTRUDERS > 2
-    static void lcd_move_e2() { lcd_move_e(2) }
+    static void lcd_move_e2() { lcd_move_e(2); }
     #if EXTRUDERS > 3
-      static void lcd_move_e3() { lcd_move_e(3) }
+      static void lcd_move_e3() { lcd_move_e(3); }
     #endif
   #endif
 #endif // EXTRUDERS > 1
@@ -816,7 +821,7 @@ static void lcd_move_menu_axis() {
   MENU_ITEM(submenu, MSG_MOVE_Y, lcd_move_y);
   if (move_menu_scale < 10.0) {
     MENU_ITEM(submenu, MSG_MOVE_Z, lcd_move_z);
-    MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_e);
+    MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_e0);
     #if EXTRUDERS > 1
       MENU_ITEM(submenu, MSG_MOVE_E1, lcd_move_e1);
       #if EXTRUDERS > 2
