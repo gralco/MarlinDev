@@ -782,18 +782,7 @@ static void lcd_move_e(uint8_t e) {
 
 static void lcd_move_e0() { lcd_move_e(0); }
 #if EXTRUDERS > 1
-<<<<<<< HEAD
-<<<<<<< HEAD
   static void lcd_move_e1() { lcd_move_e(1); }
-  #if EXTRUDERS > 2
-    static void lcd_move_e2() { lcd_move_e(2); }
-    #if EXTRUDERS > 3
-      static void lcd_move_e3() { lcd_move_e(3); }
-=======
-  static void lcd_move_e1() { lcd_move_e(1) }
-=======
-  static void lcd_move_e1() { lcd_move_e(1); }
->>>>>>> Solve https://github.com/MarlinFirmware/MarlinDev/pull/143
   #if EXTRUDERS > 2
     static void lcd_move_e2() { lcd_move_e(2); }
     #if EXTRUDERS > 3
@@ -802,20 +791,6 @@ static void lcd_move_e0() { lcd_move_e(0); }
   #endif
 #endif // EXTRUDERS > 1
 
-<<<<<<< HEAD
-#if EXTRUDERS > 1
-  static void lcd_move_e1() { lcd_move_e(1) }
-  #if EXTRUDERS > 2
-    static void lcd_move_e2() { lcd_move_e(2) }
-    #if EXTRUDERS > 3
-      static void lcd_move_e3() { lcd_move_e(3) }
->>>>>>> Added Extrude From Multiple Extruders from LCD feature
-    #endif
-  #endif
-#endif // EXTRUDERS > 1
-
-=======
->>>>>>> Got rid of accidental redundant (doubled-up) code from fixing conflicts (thanks Scott)
 /**
  *
  * "Prepare" > "Move Xmm" > "Move XYZ" submenu
