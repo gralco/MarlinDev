@@ -421,16 +421,14 @@ bool target_direction;
   boolean chdkActive = false;
 #endif
 
-<<<<<<< HEAD
 #if ENABLED(PID_ADD_EXTRUSION_RATE)
   int lpq_len = 20;
 #endif
-=======
-#ifdef RESUME_FEATURE
+
+#if ENABLED(RESUME_FEATURE)
   extern float planner_disabled_below_z;
   extern bool layer_reached;
 #endif //RESUME_FEATURE
->>>>>>> Added Resume From Z and Layer Counting features
 
 //===========================================================================
 //================================ Functions ================================
@@ -948,7 +946,7 @@ void get_command() {
           lcd_setstatus(time, true);
           card.printingHasFinished();
           card.checkautostart(true);
-          #ifdef RESUME_FEATURE
+          #if ENABLED(RESUME_FEATURE)
             planner_disabled_below_z = 0;
           #endif //RESUME_FEATURE
         }
@@ -2250,7 +2248,7 @@ inline void gcode_G4() {
  */
 inline void gcode_G28() {
 
-  #ifdef RESUME_FEATURE
+  #if ENABLED(RESUME_FEATURE)
     if (planner_disabled_below_z) return; // Disable homing if resuming print
   #endif //RESUME_FEATURE
 
@@ -2608,7 +2606,7 @@ inline void gcode_G28() {
     }
   #endif
 
-  #ifdef TRACK_LAYER
+  #if ENABLED(TRACK_LAYER)
     current_layer = 0;
     last_layer_z = 0;
   #endif //TRACK_LAYER
@@ -2650,7 +2648,7 @@ inline void gcode_G28() {
    */
   inline void gcode_G29() {
 
-    #ifdef RESUME_FEATURE
+    #if ENABLED(RESUME_FEATURE)
       if (planner_disabled_below_z) return; // Disable probing if resuming print
     #endif
     static int probe_point = -1;
@@ -2761,7 +2759,7 @@ inline void gcode_G28() {
         mbl.z_values[iy][ix] = z;
 
     } // switch(state)
-    #ifdef TRACK_LAYER
+    #if ENABLED(TRACK_LAYER)
       current_layer = 0;
       last_layer_z = 0;
     #endif //TRACK_LAYER
@@ -2815,7 +2813,7 @@ inline void gcode_G28() {
    */
   inline void gcode_G29() {
 
-    #ifdef RESUME_FEATURE
+    #if ENABLED(RESUME_FEATURE)
       if (planner_disabled_below_z) return; // Disable probing if resuming print
     #endif
 
@@ -3254,7 +3252,7 @@ inline void gcode_G28() {
       }
     #endif
 
-    #ifdef TRACK_LAYER
+    #if ENABLED(TRACK_LAYER)
       current_layer = 0;
       last_layer_z = 0;
     #endif //TRACK_LAYER
@@ -3381,7 +3379,7 @@ inline void gcode_M17() {
   enable_all_steppers();
 }
 
-#ifdef RESUME_FEATURE
+#if ENABLED(RESUME_FEATURE)
   inline void gcode_M19() {
     if (code_seen('Z')) {
       gcode_get_destination(); // For Z
@@ -3438,7 +3436,7 @@ inline void gcode_M17() {
    */
   inline void gcode_M24() {
     card.startFileprint();
-    #ifdef TRACK_LAYER
+    #if ENABLED(TRACK_LAYER)
       current_layer = 0;
       last_layer_z = 0;
     #endif //TRACK_LAYER
@@ -4334,7 +4332,7 @@ inline void gcode_M114() {
   SERIAL_PROTOCOLPGM(" Z:");
   SERIAL_PROTOCOL(st_get_position_mm(Z_AXIS));
 
-  #ifdef TRACK_LAYER
+  #if ENABLED(TRACK_LAYER)
     SERIAL_PROTOCOLPGM("  Layer:");
     SERIAL_PROTOCOL(current_layer);
     SERIAL_PROTOCOLLN("");
@@ -5634,7 +5632,7 @@ inline void gcode_T(uint8_t tmp_extruder) {
     SERIAL_PROTOCOL_F(tmp_extruder,DEC);
     SERIAL_ECHOLN(MSG_INVALID_EXTRUDER);
   }
-  #ifdef RESUME_FEATURE
+  #if ENABLED(RESUME_FEATURE)
     else if (!planner_disabled_below_z || layer_reached);
   #endif
   else {
@@ -5864,7 +5862,7 @@ void process_next_command() {
         gcode_M17();
         break;
 
-      #ifdef RESUME_FEATURE
+      #if ENABLED(RESUME_FEATURE)
         case 19: // M19 - resume Z
           gcode_M19(); break;
       #endif //RESUME_FEATURE
