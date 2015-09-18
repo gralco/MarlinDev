@@ -421,15 +421,13 @@ bool target_direction;
   boolean chdkActive = false;
 #endif
 
-<<<<<<< HEAD
 #if ENABLED(PID_ADD_EXTRUSION_RATE)
   int lpq_len = 20;
 #endif
-=======
+
 #ifdef FILAMENTCHANGEENABLE
   boolean change_filament = false;
 #endif //FILAMENTCHANGEENABLE
->>>>>>> Added M601 Resume Print From Filament Change feature
 
 //===========================================================================
 //================================ Functions ================================
@@ -6201,11 +6199,9 @@ void process_next_command() {
         case 600: //Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
           gcode_M600();
           break;
-
-        case 601: // M601 Resume the print from filament change
-          gcode_M601();
-          break;
       #endif // FILAMENTCHANGEENABLE
+
+      //case 601: this implementation is earlier in the parser
 
       #if ENABLED(DUAL_X_CARRIAGE)
         case 605:
